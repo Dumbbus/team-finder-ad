@@ -97,11 +97,29 @@ docker compose down
 После заполнения `.env` и настройки базы данных можно запустить сервер разработки:
 
 ```bash
+python manage.py migrate
+python manage.py seed_demo_data
+```
+
+Команда `seed_demo_data` создаёт трёх тестовых пользователей и по проекту для каждого.
+Для входа можно использовать `anna@example.com`, `ivan@example.com` или
+`maria@example.com`; пароль у всех демопользователей `demo12345`.
+
+```bash
 python manage.py runserver
 ```
 
-Теперь проект доступен по адресу [http://localhost:8000](http://localhost:8000). 
-Если видите ракету с надписью "The install worked successfully! Congratulations!", то запуск прошёл успешно, Django работает!
-Осталось всего ничего: реализовать весь проект!
+Теперь проект доступен по адресу [http://localhost:8000](http://localhost:8000).
+
+## 5. Тесты
+
+Автоматические тесты можно запустить так:
+
+```bash
+python manage.py test --settings=team_finder.test_settings
+```
+
+Основные настройки проекта используют PostgreSQL, а `team_finder.test_settings`
+нужен только для быстрого локального прогона тестов без Docker.
 
 Если в процессе разработки способ развертывания приложения поменяется, обновите `readme.md` с пометкой ревьюеру, как запускать и проверять приложение.
