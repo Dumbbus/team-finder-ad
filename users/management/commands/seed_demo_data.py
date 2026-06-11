@@ -18,7 +18,7 @@ class Command(BaseCommand):
                 "name": "Анна",
                 "surname": "Смирнова",
                 "about": "Backend-разработчик, люблю аккуратные API и понятные процессы.",
-                "phone": "+7 900 111-22-33",
+                "phone": "+79001112233",
                 "github_url": "https://github.com/anna-teamfinder",
                 "skills": ["Django", "PostgreSQL", "Python"],
                 "project": {
@@ -32,7 +32,7 @@ class Command(BaseCommand):
                 "name": "Иван",
                 "surname": "Петров",
                 "about": "Frontend-разработчик, собираю быстрые интерфейсы для команд.",
-                "phone": "+7 900 222-33-44",
+                "phone": "+79002223344",
                 "github_url": "https://github.com/ivan-teamfinder",
                 "skills": ["React", "UX"],
                 "project": {
@@ -46,7 +46,7 @@ class Command(BaseCommand):
                 "name": "Мария",
                 "surname": "Кузнецова",
                 "about": "DevOps-инженер, помогаю проектам удобно запускаться и деплоиться.",
-                "phone": "+7 900 333-44-55",
+                "phone": "+79003334455",
                 "github_url": "https://github.com/maria-teamfinder",
                 "skills": ["Docker", "PostgreSQL"],
                 "project": {

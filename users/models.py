@@ -108,5 +108,5 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if not self.avatar:
-            self.avatar.save(_default_avatar_name(self), _make_initial_avatar(self), save=False)
+            self.avatar.save(_default_avatar_name(self), _make_initial_avatar(self), save=True)
         super().save(*args, **kwargs)

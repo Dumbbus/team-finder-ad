@@ -72,7 +72,7 @@ DATABASES = {
         "NAME": config("POSTGRES_DB", default="team_finder"),
         "USER": config("POSTGRES_USER", default="team_finder"),
         "PASSWORD": config("POSTGRES_PASSWORD", default="team_finder"),
-        "HOST": config("POSTGRES_HOST", default="localhost"),
+        "HOST": config("POSTGRES_HOST", default="127.0.0.1"),
         "PORT": config("POSTGRES_PORT", default=5432, cast=int),
     }
 }
