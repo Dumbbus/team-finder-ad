@@ -23,15 +23,15 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                ("name", models.CharField(max_length=160, verbose_name="Название")),
-                ("description", models.TextField(verbose_name="Описание")),
+                ("name", models.CharField(max_length=200, verbose_name="Название")),
+                ("description", models.TextField(blank=True, verbose_name="Описание")),
                 ("github_url", models.URLField(blank=True, verbose_name="GitHub")),
                 (
                     "status",
                     models.CharField(
-                        choices=[("open", "Открыт"), ("closed", "Закрыт")],
+                        choices=[("open", "Open"), ("closed", "Closed")],
                         default="open",
-                        max_length=12,
+                        max_length=6,
                         verbose_name="Статус",
                     ),
                 ),
@@ -42,15 +42,6 @@ class Migration(migrations.Migration):
                 (
                     "updated_at",
                     models.DateTimeField(auto_now=True, verbose_name="Дата обновления"),
-                ),
-                (
-                    "favorited_by",
-                    models.ManyToManyField(
-                        blank=True,
-                        related_name="favorites",
-                        to=django.conf.settings.AUTH_USER_MODEL,
-                        verbose_name="В избранном у",
-                    ),
                 ),
                 (
                     "owner",
@@ -65,7 +56,7 @@ class Migration(migrations.Migration):
                     "participants",
                     models.ManyToManyField(
                         blank=True,
-                        related_name="participating_projects",
+                        related_name="participated_projects",
                         to=django.conf.settings.AUTH_USER_MODEL,
                         verbose_name="Участники",
                     ),

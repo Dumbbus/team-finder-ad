@@ -93,8 +93,8 @@ class Command(BaseCommand):
             first.favorites.add(second.owned_projects.first())
             second.favorites.add(third.owned_projects.first())
             third.favorites.add(first.owned_projects.first())
-            first.participating_projects.add(third.owned_projects.first())
-            second.participating_projects.add(first.owned_projects.first())
+            first.participated_projects.add(third.owned_projects.first())
+            second.participated_projects.add(first.owned_projects.first())
 
         self.stdout.write(
             self.style.SUCCESS(

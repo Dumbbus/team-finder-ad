@@ -39,8 +39,9 @@ def register(request):
 
     form = RegisterForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        form.save()
-        return redirect("users:login")
+        user = form.save()
+        login(request, user)
+        return redirect("projects:list")
 
     return render(request, "users/register.html", {"form": form})
 
@@ -92,19 +93,19 @@ def change_password(request):
 
 
 def participants(request):
-    users = User.objects.all()
+    users = User.objects.order_by("id")
     active_filter = request.GET.get("filter")
 
     if request.user.is_authenticated and active_filter:
         current_user = request.user
         if active_filter == "owners-of-favorite-projects":
-            users = users.filter(owned_projects__favorited_by=current_user)
+            users = users.filter(owned_projects__interested_users=current_user)
         elif active_filter == "owners-of-participating-projects":
             users = users.filter(owned_projects__participants=current_user)
         elif active_filter == "interested-in-my-projects":
             users = users.filter(favorites__owner=current_user)
         elif active_filter == "participants-of-my-projects":
-            users = users.filter(participating_projects__owner=current_user)
+            users = users.filter(participated_projects__owner=current_user)
 
         users = users.exclude(pk=current_user.pk).distinct()
 
@@ -115,7 +116,10 @@ def participants(request):
         "users/participants.html",
         {
             "page_obj": page_obj,
+            "participants": users,
             "active_filter": active_filter,
+            "active_skill": active_filter,
+            "skills": Skill.objects.all(),
             "query_prefix": _pagination_query_prefix(request),
         },
     )

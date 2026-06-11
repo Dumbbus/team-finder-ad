@@ -51,14 +51,37 @@ class ProjectFlowTests(TestCase):
         self.assertEqual(project.owner, self.member)
         self.assertIn(self.member, project.participants.all())
 
+    def test_project_form_rejects_non_github_url(self):
+        self.client.force_login(self.member)
+
+        response = self.client.post(
+            reverse("projects:create"),
+            {
+                "name": "Bad URL",
+                "description": "",
+                "github_url": "https://gitlab.com/team/project",
+                "status": Project.STATUS_OPEN,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Project.objects.filter(name="Bad URL").exists())
+        self.assertContains(response, "Ссылка должна вести на GitHub.")
+
     def test_toggle_favorite_adds_and_removes_project(self):
         self.client.force_login(self.member)
 
         add_response = self.client.post(reverse("projects:toggle_favorite", args=[self.project.id]))
         remove_response = self.client.post(reverse("projects:toggle_favorite", args=[self.project.id]))
 
-        self.assertJSONEqual(add_response.content, {"status": "ok", "favorite": True})
-        self.assertJSONEqual(remove_response.content, {"status": "ok", "favorite": False})
+        self.assertJSONEqual(
+            add_response.content,
+            {"status": "ok", "favorited": True},
+        )
+        self.assertJSONEqual(
+            remove_response.content,
+            {"status": "ok", "favorited": False},
+        )
         self.assertFalse(self.member.favorites.filter(pk=self.project.pk).exists())
 
     def test_toggle_participate_adds_member(self):
@@ -75,5 +98,8 @@ class ProjectFlowTests(TestCase):
         response = self.client.post(reverse("projects:complete", args=[self.project.id]))
         self.project.refresh_from_db()
 
-        self.assertJSONEqual(response.content, {"status": "ok"})
+        self.assertJSONEqual(
+            response.content,
+            {"status": "ok", "project_status": Project.STATUS_CLOSED},
+        )
         self.assertEqual(self.project.status, Project.STATUS_CLOSED)

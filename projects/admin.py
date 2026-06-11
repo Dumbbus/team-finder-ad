@@ -14,4 +14,4 @@ class ProjectAdmin(admin.ModelAdmin):
         "owner__name",
         "owner__surname",
     )
-    filter_horizontal = ("participants", "favorited_by", "required_skills")
+    filter_horizontal = ("participants", "required_skills")

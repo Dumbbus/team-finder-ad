@@ -32,7 +32,7 @@ def _json_body(request):
 def project_list(request):
     projects = Project.objects.select_related("owner").prefetch_related(
         "participants",
-        "favorited_by",
+        "interested_users",
     )
     paginator = Paginator(projects, 12)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -51,7 +51,7 @@ def project_detail(request, project_id):
     project = get_object_or_404(
         Project.objects.select_related("owner").prefetch_related(
             "participants",
-            "favorited_by",
+            "interested_users",
         ),
         pk=project_id,
     )
@@ -62,7 +62,7 @@ def project_detail(request, project_id):
 def favorite_projects(request):
     projects = request.user.favorites.select_related("owner").prefetch_related(
         "participants",
-        "favorited_by",
+        "interested_users",
     )
     return render(request, "projects/favorite_projects.html", {"projects": projects})
 
@@ -104,10 +104,12 @@ def complete_project(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     if project.owner_id != request.user.id:
         return JsonResponse({"status": "forbidden"}, status=403)
+    if project.status != Project.STATUS_OPEN:
+        return JsonResponse({"status": "closed", "project_status": project.status}, status=400)
 
     project.status = Project.STATUS_CLOSED
     project.save(update_fields=["status", "updated_at"])
-    return JsonResponse({"status": "ok"})
+    return JsonResponse({"status": "ok", "project_status": Project.STATUS_CLOSED})
 
 
 @login_required
@@ -116,11 +118,11 @@ def toggle_favorite(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
     if request.user.favorites.filter(pk=project.pk).exists():
         request.user.favorites.remove(project)
-        favorite = False
+        favorited = False
     else:
         request.user.favorites.add(project)
-        favorite = True
-    return JsonResponse({"status": "ok", "favorite": favorite})
+        favorited = True
+    return JsonResponse({"status": "ok", "favorited": favorited})
 
 
 @login_required

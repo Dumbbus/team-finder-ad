@@ -1,7 +1,12 @@
+from io import BytesIO
+from pathlib import Path
+
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
+from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
+from PIL import Image, ImageDraw, ImageFont
 
 
 class UserManager(BaseUserManager):
@@ -39,15 +44,45 @@ class Skill(models.Model):
         return self.name
 
 
+def _default_avatar_name(user):
+    email_part = user.email.split("@", 1)[0] if user.email else "user"
+    return f"avatars/default_{email_part}.png"
+
+
+def _make_initial_avatar(user):
+    letter = (user.name or user.email or "U").strip()[:1].upper() or "U"
+    palette = ["#DDE7F2", "#E5E7D6", "#F1E2D2", "#DEE8DD", "#E8DEEA"]
+    color = palette[sum(ord(ch) for ch in letter) % len(palette)]
+
+    image = Image.new("RGB", (256, 256), color)
+    draw = ImageDraw.Draw(image)
+
+    font = ImageFont.load_default(size=120)
+    bbox = draw.textbbox((0, 0), letter, font=font)
+    x = (256 - (bbox[2] - bbox[0])) / 2
+    y = (256 - (bbox[3] - bbox[1])) / 2 - 8
+    draw.text((x, y), letter, fill="#2F3437", font=font)
+
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return ContentFile(buffer.getvalue(), name=Path(_default_avatar_name(user)).name)
+
+
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField("Email", unique=True)
-    name = models.CharField("Имя", max_length=100)
-    surname = models.CharField("Фамилия", max_length=100)
-    about = models.TextField("О себе", blank=True)
-    phone = models.CharField("Телефон", max_length=32, blank=True)
+    name = models.CharField("Имя", max_length=124)
+    surname = models.CharField("Фамилия", max_length=124)
+    about = models.TextField("О себе", max_length=256, blank=True)
+    phone = models.CharField("Телефон", max_length=12, blank=True)
     github_url = models.URLField("GitHub", blank=True)
-    avatar = models.ImageField("Аватар", upload_to="avatars/", blank=True, null=True)
+    avatar = models.ImageField("Аватар", upload_to="avatars/")
     skills = models.ManyToManyField(Skill, related_name="users", blank=True)
+    favorites = models.ManyToManyField(
+        "projects.Project",
+        related_name="interested_users",
+        blank=True,
+        verbose_name="Избранные проекты",
+    )
     is_active = models.BooleanField("Активен", default=True)
     is_staff = models.BooleanField("Доступ в админку", default=False)
     date_joined = models.DateTimeField("Дата регистрации", default=timezone.now)
@@ -70,3 +105,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.avatar:
+            self.avatar.save(_default_avatar_name(self), _make_initial_avatar(self), save=False)
+        super().save(*args, **kwargs)

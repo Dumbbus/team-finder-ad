@@ -1,3 +1,5 @@
+import tempfile
+
 from .settings import *  # noqa: F401,F403
 
 
@@ -9,3 +11,4 @@ DATABASES = {
 }
 
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+MEDIA_ROOT = tempfile.mkdtemp(prefix="teamfinder-test-media-")

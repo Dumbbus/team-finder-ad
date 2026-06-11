@@ -1,5 +1,7 @@
 from django import forms
 
+from users.forms import validate_github_url
+
 from .models import Project
 
 
@@ -19,3 +21,6 @@ class ProjectForm(forms.ModelForm):
                 attrs={"placeholder": "https://github.com/team/project"}
             ),
         }
+
+    def clean_github_url(self):
+        return validate_github_url(self.cleaned_data.get("github_url", ""))

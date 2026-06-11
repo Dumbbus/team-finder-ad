@@ -1,8 +1,18 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordChangeForm
+from urllib.parse import urlparse
 
 from .models import User
+
+
+def validate_github_url(value):
+    if not value:
+        return value
+    host = urlparse(value).netloc.lower()
+    if host not in {"github.com", "www.github.com"}:
+        raise forms.ValidationError("Ссылка должна вести на GitHub.")
+    return value
 
 
 class RegisterForm(forms.ModelForm):
@@ -43,7 +53,7 @@ class EmailAuthenticationForm(forms.Form):
     )
 
     error_messages = {
-        "invalid_login": "Проверьте email и пароль.",
+        "invalid_login": "Неверный имейл или пароль.",
         "inactive": "Этот аккаунт отключён.",
     }
 
@@ -97,6 +107,29 @@ class ProfileForm(forms.ModelForm):
                 attrs={"placeholder": "https://github.com/username"}
             ),
         }
+
+    def clean_phone(self):
+        phone = self.cleaned_data.get("phone", "").strip()
+        if not phone:
+            raise forms.ValidationError("Укажите номер телефона.")
+
+        if phone.startswith("8") and len(phone) == 11 and phone.isdigit():
+            phone = "+7" + phone[1:]
+        elif phone.startswith("+7") and len(phone) == 12 and phone[2:].isdigit():
+            pass
+        else:
+            raise forms.ValidationError("Введите телефон в формате 8XXXXXXXXXX или +7XXXXXXXXXX.")
+
+        legacy_phone = "8" + phone[2:]
+        duplicates = User.objects.filter(phone__in=[phone, legacy_phone])
+        if self.instance and self.instance.pk:
+            duplicates = duplicates.exclude(pk=self.instance.pk)
+        if duplicates.exists():
+            raise forms.ValidationError("Пользователь с таким телефоном уже существует.")
+        return phone
+
+    def clean_github_url(self):
+        return validate_github_url(self.cleaned_data.get("github_url", ""))
 
 
 class TeamFinderPasswordChangeForm(PasswordChangeForm):
