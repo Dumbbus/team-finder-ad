@@ -7,8 +7,19 @@ from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
 from PIL import Image, ImageDraw, ImageFont
-
-
+from googletrans import Translator
+CYRILLIC_MAP = {
+    'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo',
+    'Ж': 'Zh', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
+    'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
+    'Ф': 'F', 'Х': 'Kh', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Sch',
+    'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya',
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+    'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+    'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+    'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+    'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+}
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -43,14 +54,17 @@ class Skill(models.Model):
     def __str__(self):
         return self.name
 
-
+def transliterate(text):
+    return ''.join(CYRILLIC_MAP.get(ch, ch) for ch in text)
 def _default_avatar_name(user):
     email_part = user.email.split("@", 1)[0] if user.email else "user"
     return f"avatars/default_{email_part}.png"
 
 
 def _make_initial_avatar(user):
-    letter = (user.name or user.email or "U").strip()[:1].upper() or "U"
+    raw_name = user.name or user.email or "user"
+    safe_name = transliterate(raw_name)
+    letter = (safe_name or user.email or "U").strip()[:1].upper() or "U"
     palette = ["#DDE7F2", "#E5E7D6", "#F1E2D2", "#DEE8DD", "#E8DEEA"]
     color = palette[sum(ord(ch) for ch in letter) % len(palette)]
 
