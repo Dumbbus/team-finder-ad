@@ -112,7 +112,7 @@ celerybeat-schedule
 celerybeat.pid
 
 # Environments
-.env
+.env_example
 .envrc
 .venv
 env/

@@ -1,18 +1,8 @@
 from django import forms
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordChangeForm
-from urllib.parse import urlparse
 
 from .models import User
-
-
-def validate_github_url(value):
-    if not value:
-        return value
-    host = urlparse(value).netloc.lower()
-    if host not in {"github.com", "www.github.com"}:
-        raise forms.ValidationError("Ссылка должна вести на GitHub.")
-    return value
 
 
 class RegisterForm(forms.ModelForm):
@@ -93,14 +83,6 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ("avatar", "name", "surname", "about", "phone", "github_url")
-        labels = {
-            "avatar": "Аватар",
-            "name": "Имя",
-            "surname": "Фамилия",
-            "about": "О себе",
-            "phone": "Телефон",
-            "github_url": "GitHub",
-        }
         widgets = {
             "about": forms.Textarea(attrs={"rows": 5}),
             "github_url": forms.URLInput(
