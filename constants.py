@@ -25,3 +25,4 @@ class Colors(StrEnum):
     PASTEL = "#DEE8DD"
     LILAC_FROST = "#E8DEEA"
     CLASSIC_ANTHRACITE = "#2F3437"
+

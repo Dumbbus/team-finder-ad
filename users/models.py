@@ -61,11 +61,11 @@ def _make_initial_avatar(user):
     image = Image.new("RGB", IMAGE_SIZE, color)
     draw = ImageDraw.Draw(image)
 
-    font = ImageFont.load_default(size=1)
+    font = ImageFont.load_default(size=IMAGE_FONT_SIZE)
     bbox = draw.textbbox((0, 0), letter, font=font)
     x = (IMAGE_SIZE[0] - (bbox[2] - bbox[0])) / 2
     y = (IMAGE_SIZE[1] - (bbox[3] - bbox[1])) / 2 - 8
-    draw.text((x, y), letter, font=font)
+    draw.text((x, y), letter, fill=Colors.CLASSIC_ANTHRACITE, font=font)
 
     buffer = BytesIO()
     image.save(buffer, format="PNG")
