@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from constants import *
-from services.service import pagination_query_prefix, json_body, pagination
+from services.service import pagination_query_prefix, json_body, pagination, skill_suggestions
 from users.models import Skill
 from .forms import ProjectForm
 from .models import Project
