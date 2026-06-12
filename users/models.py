@@ -1,15 +1,11 @@
-from io import BytesIO
-from pathlib import Path
-
-from PIL import Image, ImageDraw, ImageFont
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
-from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
 
 from constants import *
-from services.service import transliterate
+from services.service import default_avatar_name, make_initial_avatar
+
 
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -44,32 +40,6 @@ class Skill(models.Model):
 
     def __str__(self):
         return self.name
-
-
-def _default_avatar_name(user):
-    email_part = user.email.split("@", 1)[0] if user.email else "user"
-    return f"avatars/default_{email_part}.png"
-
-
-def _make_initial_avatar(user):
-    raw_name = user.name or user.email or "user"
-    safe_name = transliterate(raw_name)
-    letter = (safe_name or user.email or "U").strip()[:1].upper() or "U"
-    palette = list(Colors)
-    color = palette[sum(ord(ch) for ch in letter) % (len(palette) - 1)]
-
-    image = Image.new("RGB", IMAGE_SIZE, color)
-    draw = ImageDraw.Draw(image)
-
-    font = ImageFont.load_default(size=IMAGE_FONT_SIZE)
-    bbox = draw.textbbox((0, 0), letter, font=font)
-    x = (IMAGE_SIZE[0] - (bbox[2] - bbox[0])) / 2
-    y = (IMAGE_SIZE[1] - (bbox[3] - bbox[1])) / 2 - 8
-    draw.text((x, y), letter, fill=Colors.CLASSIC_ANTHRACITE, font=font)
-
-    buffer = BytesIO()
-    image.save(buffer, format="PNG")
-    return ContentFile(buffer.getvalue(), name=Path(_default_avatar_name(user)).name)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -112,5 +82,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def save(self, *args, **kwargs):
         if not self.avatar:
-            self.avatar.save(_default_avatar_name(self), _make_initial_avatar(self), save=True)
+            self.avatar.save(default_avatar_name(self), make_initial_avatar(self), save=True)
         super().save(*args, **kwargs)
+

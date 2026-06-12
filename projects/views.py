@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from constants import *
-from services.service import pagination_query_prefix, json_body, pagination, skill_suggestions
+from services.service import pagination_query_prefix, json_body, pagination
 from users.models import Skill
 from .forms import ProjectForm
 from .models import Project
@@ -52,7 +52,7 @@ def favorite_projects(request):
 @login_required
 def project_create(request):
     form = ProjectForm(request.POST or None)
-    if  form.is_valid():
+    if form.is_valid():
         project = form.save(commit=False)
         project.owner = request.user
         project.save()
@@ -69,7 +69,7 @@ def project_edit(request, project_id):
         return HttpResponseForbidden("Редактировать проект может только автор")
 
     form = ProjectForm(request.POST or None, instance=project)
-    if  form.is_valid():
+    if form.is_valid():
         form.save()
         return redirect("projects:detail", project_id=project.id)
 
@@ -88,7 +88,7 @@ def complete_project(request, project_id):
         return JsonResponse({"status": "forbidden"}, status=HTTPStatus.FORBIDDEN)
     if project.status != Project.STATUS_OPEN:
         return JsonResponse({"status": "closed", "project_status": project.status},
-                            status=HTTPStatus.BAD_REQUEST,)
+                            status=HTTPStatus.BAD_REQUEST, )
 
     project.status = Project.STATUS_CLOSED
     project.save(update_fields=["status", "updated_at"])
@@ -117,9 +117,8 @@ def toggle_participate(request, project_id):
     if part_filter := project.participants.filter(pk=request.user.pk).exists():
         project.participants.remove(request.user)
         return JsonResponse({"status": "ok", "participant": not part_filter})
-    else:
-        project.participants.add(request.user)
-        return JsonResponse({"status": "ok", "participant": not part_filter})
+    project.participants.add(request.user)
+    return JsonResponse({"status": "ok", "participant": not part_filter})
 
 
 @login_required

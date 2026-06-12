@@ -1,11 +1,15 @@
 import json
+from io import BytesIO
+from pathlib import Path
 from urllib.parse import urlencode
 
+from PIL import Image, ImageDraw, ImageFont
+from django.core.files.base import ContentFile
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 
-from constants import SKILL_TRUNCATION_TAIL
+from constants import *
 
 CYRILLIC_MAP = {
     'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo',
@@ -54,3 +58,28 @@ def skill_suggestions(request):
 
 def transliterate(text):
     return ''.join(CYRILLIC_MAP.get(ch, ch) for ch in text)
+
+def default_avatar_name(user):
+    email_part = user.email.split("@", 1)[0] if user.email else "user"
+    return f"avatars/default_{email_part}.png"
+
+def make_initial_avatar(user):
+    raw_name = user.name or user.email or "user"
+    safe_name = transliterate(raw_name)
+    letter = (safe_name or user.email or "U").strip()[:1].upper() or "U"
+    palette = list(Colors)
+    color = palette[sum(ord(ch) for ch in letter) % (len(palette) - 1)]
+
+    image = Image.new("RGB", IMAGE_SIZE, color)
+    draw = ImageDraw.Draw(image)
+
+    font = ImageFont.load_default(size=IMAGE_FONT_SIZE)
+    bbox = draw.textbbox((0, 0), letter, font=font)
+    x = (IMAGE_SIZE[0] - (bbox[2] - bbox[0])) / 2
+    y = (IMAGE_SIZE[1] - (bbox[3] - bbox[1])) / 2 - 8
+    draw.text((x, y), letter, fill=Colors.CLASSIC_ANTHRACITE, font=font)
+
+    buffer = BytesIO()
+    image.save(buffer, format="PNG")
+    return ContentFile(buffer.getvalue(), name=Path(default_avatar_name(user)).name)
+
