@@ -46,9 +46,6 @@ class Skill(models.Model):
         return self.name
 
 
-
-
-
 def _default_avatar_name(user):
     email_part = user.email.split("@", 1)[0] if user.email else "user"
     return f"avatars/default_{email_part}.png"
@@ -68,7 +65,7 @@ def _make_initial_avatar(user):
     bbox = draw.textbbox((0, 0), letter, font=font)
     x = (IMAGE_SIZE[0] - (bbox[2] - bbox[0])) / 2
     y = (IMAGE_SIZE[1] - (bbox[3] - bbox[1])) / 2 - 8
-    draw.text((x, y), letter, fill=Colors.CLASSIC_ANTHRACITE, font=font)
+    draw.text((x, y), letter, font=font)
 
     buffer = BytesIO()
     image.save(buffer, format="PNG")
